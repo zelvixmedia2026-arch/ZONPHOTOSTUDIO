@@ -1,127 +1,71 @@
 "use client";
 
+import { Download, Loader2 } from "lucide-react";
 import { useState } from "react";
+// 1. IMPORT ImageSettings HERE
+import { ImageSettings } from "./AdjustmentsPanel";
 
 interface DownloadPanelProps {
   processed: string | null;
+  settings: ImageSettings; // 2. ADD THIS TO THE INTERFACE
 }
 
-function convertToJpeg(blob: Blob): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const objectUrl = URL.createObjectURL(blob);
-    const img = new Image();
+export default function DownloadPanel({ processed, settings }: DownloadPanelProps) {
+  const [downloading, setDownloading] = useState(false);
 
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        URL.revokeObjectURL(objectUrl);
-        reject(new Error("Your browser cannot convert images."));
-        return;
-      }
-
-      ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0);
-
-      canvas.toBlob(
-        (out) => {
-          URL.revokeObjectURL(objectUrl);
-          if (out) resolve(out);
-          else reject(new Error("JPG conversion failed."));
-        },
-        "image/jpeg",
-        0.95
-      );
-    };
-
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error("Could not read the processed image."));
-    };
-
-    img.src = objectUrl;
-  });
-}
-
-export default function DownloadPanel({ processed }: DownloadPanelProps) {
-  const [busy, setBusy] = useState(false);
-
-  const handleDownload = async (format: "png" | "jpg") => {
+  const handleDownload = async () => {
     if (!processed) return;
+    setDownloading(true);
 
-    setBusy(true);
     try {
-      const response = await fetch(processed);
-      if (!response.ok) throw new Error("Could not load the image.");
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = processed;
 
-      const pngBlob = await response.blob();
-      const blob = format === "jpg" ? await convertToJpeg(pngBlob) : pngBlob;
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
 
-      const objectUrl = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = objectUrl;
-      link.download = `zon-photo.${format}`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(objectUrl);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+
+      if (ctx) {
+        // 3. APPLY THE EXACT SAME FILTERS TO THE CANVAS
+        ctx.filter = `brightness(${settings.brightness}%) contrast(${settings.contrast}%) saturate(${settings.saturation}%) grayscale(${settings.grayscale}%) sepia(${settings.sepia}%) hue-rotate(${settings.hueRotate}deg)`;
+        ctx.drawImage(img, 0, 0);
+
+        const link = document.createElement("a");
+        link.download = "zon-photostudio-processed.jpg";
+        link.href = canvas.toDataURL("image/jpeg", 1.0);
+        link.click();
+      }
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Download failed.");
+      alert("Failed to download image.");
     } finally {
-      setBusy(false);
+      setDownloading(false);
     }
   };
 
+  if (!processed) return null;
+
   return (
-    <div className="mt-6 rounded-3xl border border-[#ECE6D7] bg-white p-6 shadow-sm">
-
-      <h2 className="text-2xl font-bold">
-        Download
-      </h2>
-
-      <p className="mt-2 text-gray-500">
-        Export your processed photo.
-      </p>
-
-      <div className="mt-6 grid grid-cols-3 gap-3">
-
-        <button
-          type="button"
-          onClick={() => handleDownload("png")}
-          disabled={!processed || busy}
-          className="rounded-xl border p-3 hover:border-[#C89B2B] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          PNG
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleDownload("jpg")}
-          disabled={!processed || busy}
-          className="rounded-xl border p-3 hover:border-[#C89B2B] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          JPG
-        </button>
-
-        <button className="rounded-xl border p-3 hover:border-[#C89B2B]">
-          Print Sheet
-        </button>
-
+    <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm flex items-center justify-between">
+      <div>
+        <h3 className="text-xl font-bold text-gray-900">Ready to save?</h3>
+        <p className="text-sm text-gray-500 mt-1">Your adjustments are applied.</p>
       </div>
-
+      
       <button
-        type="button"
-        onClick={() => handleDownload("png")}
-        disabled={!processed || busy}
-        className="mt-6 w-full rounded-xl bg-[#C89B2B] py-4 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+        onClick={handleDownload}
+        disabled={downloading}
+        className="flex items-center gap-2 rounded-xl bg-[#C89B2B] px-6 py-3 font-bold text-white transition-all hover:bg-[#b08720] disabled:opacity-50"
       >
-        Download
+        {downloading ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
+        Download HD
       </button>
-
     </div>
   );
 }

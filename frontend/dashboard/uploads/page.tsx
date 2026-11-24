@@ -8,6 +8,8 @@ import BackgroundSelector from "@/components/dashboard/BackgroundSelector";
 import ProcessButton from "@/components/dashboard/ProcessButton";
 import LivePreview from "@/components/dashboard/LivePreview";
 import DownloadPanel from "@/components/dashboard/DownloadPanel";
+import AdjustmentsPanel, { ImageSettings } from "@/components/dashboard/AdjustmentsPanel";
+import GradientSelector from "@/components/dashboard/GradientSelector";
 import { removeBackground } from "@/lib/api";
 
 // Must match the swatches in BackgroundSelector.tsx
@@ -16,6 +18,10 @@ const BACKGROUND_HEX: Record<string, string> = {
   red: "#E53935",
   blue: "#1976D2",
   yellow: "#FDD835",
+  "light-blue": "#D3E3F8",
+  gray: "#E0E0E0",
+  "dark-gray": "#9E9E9E",
+  green: "#43A047",
 };
 
 export default function DashboardPage() {
@@ -24,9 +30,22 @@ export default function DashboardPage() {
   const [processedImage, setProcessedImage] = useState<string | null>(null);
 
   const [photoType, setPhotoType] = useState("passport");
+  
+  // Background & Gradient State
   const [background, setBackground] = useState("white");
+  const [gradient, setGradient] = useState<string | null>(null);
 
   const [processing, setProcessing] = useState(false);
+
+  // Manual Adjustments State
+  const [settings, setSettings] = useState<ImageSettings>({
+    brightness: 100,
+    contrast: 100,
+    saturation: 100,
+    grayscale: 0,
+    sepia: 0,
+    hueRotate: 0,
+  });
 
   const handleProcess = async () => {
     if (!image) {
@@ -37,8 +56,11 @@ export default function DashboardPage() {
     setProcessing(true);
     setProcessedImage(null);
 
+    // If a gradient is selected, use it. Otherwise, use the solid color hex.
+    const finalBackground = gradient ? gradient : BACKGROUND_HEX[background];
+
     try {
-      const result = await removeBackground(image, BACKGROUND_HEX[background]);
+      const result = await removeBackground(image, finalBackground);
       setProcessedImage(result.imageUrl);
     } catch (err) {
       console.error(err);
@@ -48,8 +70,14 @@ export default function DashboardPage() {
     }
   };
 
+  // When a solid color is picked, clear the gradient selection
+  const handleColorSelect = (color: string) => {
+    setBackground(color);
+    setGradient(null);
+  };
+
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto max-w-7xl pb-20">
       <div className="mb-10">
         <h1 className="text-4xl font-bold text-gray-900">
           AI Workspace
@@ -62,6 +90,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-8 lg:grid-cols-12">
+        {/* LEFT COLUMN */}
         <div className="space-y-6 lg:col-span-5">
           <UploadArea
             image={image}
@@ -77,7 +106,12 @@ export default function DashboardPage() {
 
           <BackgroundSelector
             background={background}
-            setBackground={setBackground}
+            setBackground={handleColorSelect}
+          />
+
+          <AdjustmentsPanel 
+            settings={settings} 
+            onChange={setSettings} 
           />
 
           <ProcessButton
@@ -89,18 +123,32 @@ export default function DashboardPage() {
           />
         </div>
 
+        {/* RIGHT COLUMN */}
         <div className="space-y-6 lg:col-span-7">
+          
+          <GradientSelector 
+            selectedGradient={gradient} 
+            setSelectedGradient={(grad) => {
+              setGradient(grad);
+              // Optional: You could clear background color here if you want
+            }} 
+          />
+
           <LivePreview
             original={preview}
             processed={processedImage}
+            isProcessing={processing}
+            settings={settings}
           />
 
           <DownloadPanel
             processed={processedImage}
+            settings={settings}
           />
         </div>
       </div>
 
+      {/* LOADING OVERLAY */}
       {processing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="rounded-3xl bg-white p-10 shadow-2xl">

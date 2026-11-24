@@ -1,101 +1,66 @@
 "use client";
 
-import {
-  ImageIcon,
-  Building2,
-  TimerReset,
-  ShieldCheck,
-} from "lucide-react";
-
-const stats = [
-  {
-    icon: ImageIcon,
-    value: "20K+",
-    label: "Photos Processed",
-  },
-  {
-    icon: Building2,
-    value: "500+",
-    label: "Photo Studios",
-  },
-  {
-    icon: ShieldCheck,
-    value: "95%",
-    label: "AI Accuracy",
-  },
-  {
-    icon: TimerReset,
-    value: "<20s",
-    label: "Average Processing",
-  },
-];
+import { Image as ImageIcon, Building2, ShieldCheck, Timer } from "lucide-react";
 
 export default function Stats() {
+  const stats = [
+    {
+      icon: <ImageIcon size={28} className="text-[#C89B2B]" />,
+      value: "100",
+      label: "Photos Processed",
+    },
+    {
+      icon: <Building2 size={28} className="text-[#C89B2B]" />,
+      value: "10",
+      label: "Photo Studios",
+    },
+    {
+      icon: <ShieldCheck size={28} className="text-[#C89B2B]" />,
+      value: "98%",
+      label: "AI Accuracy",
+    },
+    {
+      icon: <Timer size={28} className="text-[#C89B2B]" />,
+      value: "<20s",
+      label: "Average Processing",
+    },
+  ];
+
   return (
-    <section className="py-28">
-      <div className="mx-auto max-w-7xl px-8">
-
-        {/* Heading */}
-
-        <div className="mb-16 text-center">
-
-          <span className="rounded-full bg-yellow-100 px-5 py-2 font-medium text-[#C89B2B]">
+    <section className="py-24 bg-[#FDFBF7]">
+      <div className="max-w-7xl mx-auto px-6">
+        
+        {/* Header */}
+        <div className="text-center mb-16">
+          <div className="inline-block px-4 py-1.5 rounded-full bg-[#C89B2B]/10 text-[#C89B2B] font-medium text-sm mb-6">
             Trusted by Studios
-          </span>
-
-          <h2 className="mt-5 text-5xl font-bold text-[#1F1F1F]">
+          </div>
+          <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">
             Numbers that Speak
           </h2>
-
-          <p className="mt-4 text-lg text-gray-500">
+          <p className="text-lg text-gray-500">
             Built to save hours of manual Photoshop work.
           </p>
-
         </div>
 
-        {/* Cards */}
-
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-
-          {stats.map((item) => (
-            <div
-              key={item.label}
-              className="
-              group
-              rounded-3xl
-              border
-              border-[#E8D9AF]
-              bg-white
-              p-8
-              shadow-[0_12px_35px_rgba(0,0,0,0.06)]
-              transition-all
-              duration-300
-              hover:-translate-y-3
-              hover:border-[#C89B2B]
-              hover:shadow-[0_18px_45px_rgba(200,155,43,0.18)]
-              "
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {stats.map((stat, index) => (
+            <div 
+              key={index}
+              className="bg-white rounded-3xl p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1"
             >
-
-              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FFF3D6] transition group-hover:rotate-6 group-hover:scale-110">
-
-                <item.icon
-                  size={30}
-                  className="text-[#C89B2B]"
-                />
-
+              <div className="h-14 w-14 rounded-2xl bg-[#FDFBF7] flex items-center justify-center mb-6 border border-[#C89B2B]/10">
+                {stat.icon}
               </div>
-
-              <h3 className="text-5xl font-extrabold text-[#1F1F1F]">
-                {item.value}
-              </h3>
-
-              <p className="mt-3 text-gray-500">
-                {item.label}
-              </p>
-
+              <div className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">
+                {stat.value}
+              </div>
+              <div className="text-gray-500 font-medium">
+                {stat.label}
+              </div>
             </div>
           ))}
-
         </div>
 
       </div>
