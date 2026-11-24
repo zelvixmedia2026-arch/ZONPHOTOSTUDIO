@@ -5,5 +5,7 @@ pydantic==2.14.4
 python-multipart==0.0.34
 python-dotenv==1.2.4
 pillow==13.0.0
-rembg[cpu]
+rembg
+onnxruntime
+opencv-python-headless
 pytest
